@@ -1,0 +1,13 @@
+topic: How to connect to the mongodb 
+    simple run your compass and connect it with the localhost and then go to the vs code and run the code to connect the backend from mongodb in mongoose , where as soon as you will run post request in your database databse would be created with the provided name you have given in the url simple .
+Model: model is a collection simple or a table you can say of a particular thing here it is of product .
+Controller: controller is basically which control the model means will do all crud operation in the model   
+Product.save is different from insert because if you will provide id to it so it will behave as update but if no id so it will work as normal insertion
+topic: important about the exports. 
+here like you are in the folder you have exports many thing like exports like exports.add=add 
+, exports.sub = sub then at the file where you are using in that file you are importing them like 
+const {add, sub} =  require('./routes/products) ; here by destructuring you have just separate add and sub while importing now you can directly use them . but if you will import like 
+const temp = require('/routes/products') here it always come in a object so you can use them like 
+temp.add and temp.sub 
+topic:very important thing about the mongoose is that there is a thing in the like whatever you did write query like you applied find ,skip whatevery query you need some apply but it will be executed if you will apply .exec() after those query which will execute them in reality and amother important thing about :::CLONE: that if you execute a query you can not execute it again it will throw an error and if you want to run the same query again just clone it like in that same query whih was executed write this query.clone().exec() then it will execute again 
+topic: one important thing about mongoose is that in it all queries are promises so if you want it to executed then other things should work so use await and in the await also use try catch to catch the error 
