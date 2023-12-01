@@ -1,10 +1,8 @@
 const { Brand } = require("../model/Brand");
 // This is basically a API 
 exports.fetchBrands = async (req,res)=>{
-
     try{
-        const brands =  await Brand.find({}).exec;
-        
+        const brands =  await Brand.find({}).exec();
         // ye ham response bhej rahe hai jiska format json hai 
         res.status(200).json(brands);
     }catch(err){

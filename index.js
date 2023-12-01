@@ -6,6 +6,10 @@ const productsRouter = require('./routes/Products');
 const categoriesRouter = require('./routes/Categories');
 const brandsRouter = require('./routes/Brands');
 const cors = require('cors')
+const usersRouter = require('./routes/Users');
+const authRouter = require('./routes/Auth');
+const cartRouter = require('./routes/Carts');
+const orderRouter = require('./routes/Orders');
 // it is a default import we can name it anything so productsRouters
 // const { productsRouters } = require('./routes/Products');
 //middleware
@@ -23,6 +27,10 @@ server.use(express.json());
 server.use( '/products',productsRouter.router);
 server.use( '/categories',categoriesRouter.router);
 server.use( '/brands',brandsRouter.router);
+server.use( '/users',usersRouter.router);
+server.use( '/auth',authRouter.router);
+server.use( '/cart',cartRouter.router);
+server.use( '/orders',orderRouter.router);
 
 
 async function main(){

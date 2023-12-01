@@ -54,7 +54,7 @@ exports.fetchAllProducts= async(req,res)=>{
         // about clone it is in the notes.txt 
         // const totalDocs = await query.clone().count().exec();
        
-        console.log({totalDocs})
+
         res.set('X-Total-Count',totalDocs);
         // Product.save is different from insert because if you will provide id to it so it will behave as update but if no id so it will work as normal insertion 
        

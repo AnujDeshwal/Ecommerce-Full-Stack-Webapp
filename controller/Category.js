@@ -3,7 +3,7 @@ const { Category } = require("../model/Category");
 exports.fetchCategories = async (req,res)=>{
 
     try{
-        const categories =  await Category.find({}).exec;
+        const categories =  await Category.find({}).exec();
         
         // ye ham response bhej rahe hai jiska format json hai 
         res.status(200).json(categories);
