@@ -7,7 +7,7 @@ exports.createUser= async(req,res)=>{
     try{
         const doc = await user.save()
         // Product.save is different from insert because if you will provide id to it so it will behave as update but if no id so it will work as normal insertion 
-        res.status(201).json(doc)
+        res.status(201).json({id:doc.id,role:doc.role})
     }catch(err){
         console.log(error)
         res.status(400).json(err)
@@ -20,7 +20,7 @@ exports.loginUser = async(req,res)=>{
             res.status(401).json({message:'no such user email'});
         } else if(user.password === req.body.password){
             // here you can see like we are doing kind of projection only sending some limited things from teh backend not all because there could be sensitive details in the backend ,which can not be sent to the frontend because it is not safe 
-            res.status(200).json({id:user.id,email:user.email,name:user.name,addresses:user.addresses});
+            res.status(200).json({id:user.id,role:user.role});
         }
         else{
             res.status(401).json({message:'invalid credentials'});  

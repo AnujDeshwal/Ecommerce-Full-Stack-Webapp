@@ -45,7 +45,8 @@ exports.updateCart = async (req,res)=>{
         // here basically in the req.body we will send the updated product and basically findByIdAndUpdate function send the old document not updated one so we ordered him new:true means send the updated document because we want updated product in our frontend
         const cart = await Cart.findByIdAndUpdate(id,req.body,{new:true});
         // in the findByIdAndUpdate you generally send only those field of the document which is to be updated 
-        res.status(200).json(cart)
+        const result = await cart.populate('product');
+        res.status(200).json(result )
     }catch(err){
         res.status(400).json(err)
     }

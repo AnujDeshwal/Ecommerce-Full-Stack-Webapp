@@ -21,8 +21,13 @@ exports.fetchAllProducts= async(req,res)=>{
     // here filter will come as object like //filter = {"category":["smartphones", "clothes"]}
     //sort ={_sort:"price",_order:"desc"}
     //pagination={_page:1 , _limit=10}
-    let  query = Product.find({});
-    let  totalProductsQuery = Product.find({});
+    let condition = {}
+    if(!req.query.admin){
+        condition.deleted = {$ne:true};
+    }
+    let  query = Product.find(condition);
+    // those products whose deleted is false that product should be appeared in the user section only and those who are deleted they would be in the admin section so that when those product would be available so admin will again make it available 
+    let  totalProductsQuery = Product.find(condition);
     // In Express. js, req. query is an object containing a set of key-value pairs representing the query parameters of the URL. This object is used to get the values of query parameters, which are appended to the end of the URL after a question mark.
     
     // i am applying all these filter on a same "query" variable because first of all , all products which are of category mentioned would come in it then , in those filter category brand would be choosen that which brand is needed so brand filter would be applied on that category if category was provided then sort would be app lied and also remember that these commands of dbms are promises so they wouuld be working in the background 
