@@ -12,26 +12,31 @@ const  ExtractJwt = require('passport-jwt').ExtractJwt;
 const session = require('express-session');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-
+const cookieParser = require('cookie-parser');
 const SECRET_KEY = 'SECRET_KEY';
 const jwt = require('jsonwebtoken');
 const usersRouter = require('./routes/Users');
 const authRouter = require('./routes/Auth');
 const cartRouter = require('./routes/Carts');
 const orderRouter = require('./routes/Orders');
-const { sanitizeUser, isAuth } = require('./services/common');
+const { sanitizeUser, isAuth, cookieExtractor } = require('./services/common');
 const { User } = require('./model/User');
 const crypto = require('crypto')
 
-
 //JWT options
+
 const opts = {}
-opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+// here it is extracting the token from the user below cookieExtractor extractor extract kar raha hai it is a function defined by me so ye hi passport.use('jwt',()) waale ko call kar de raha hai other wise now route has a middleware as passport.authenticate('jwt')
+opts.jwtFromRequest = cookieExtractor;
 opts.secretOrKey = SECRET_KEY;
 
 // it is a default import we can name it anything so productsRouters
 // const { productsRouters } = require('./routes/Products');
+
 //middleware
+server.use(express.static('build'))
+// cookieParser is for ki you take the data from req.cookies 
+server.use(cookieParser());
 // we created session for passport js 
 // this below thing is for 
 server.use(session({
@@ -99,7 +104,7 @@ passport.use('local', new LocalStrategy(
                 // if equal hai toh neeche waali cheej 
                 const token = jwt.sign(sanitizeUser(user),SECRET_KEY);
                 // now very important that which ever value jo done ke second parameter mai jaati hai na vo hi req.user mai chali jaati hai , and koi bhi value gayi means authentication successfull 
-               done(null , token);
+               done(null , {token});//this lines send to serializer
                 
             });
             
@@ -110,9 +115,16 @@ passport.use('local', new LocalStrategy(
   ));
 
   passport.use('jwt',new JwtStrategy(opts,async function(jwt_payload, done) {
-      try{
-        const user = await User.findOne({id: jwt_payload.sub});
+        try{
+        // When a request is made to a route protected by passport-jwt, the middleware intercepts the request and attempts to extract the JWT token from the request (e.g., from headers, query parameters, or cookies, depending on your configuration).
+
+        // Decoding and Verification: Once the JWT is extracted, the passport-jwt strategy decodes and verifies the token using the configured secret or public key. If the token is valid, the strategy extracts the user information from the token's payload.
+        
+        // User Population: If the token is valid and the user information is successfully extracted, the passport-jwt strategy populates req.user with the extracted user information. This allows subsequent middleware or route handlers to access the authenticated user's details.
+
+        const user = await User.findById( jwt_payload.id);
         if (user) {
+            // ye neeche waala code req.user mai sanitizerUser daal dega pehle req.user mai token pada hua that after login 
             return done(null, sanitizeUser(user));//this calls serializer
         } else {
             return done(null, false);

@@ -1,13 +1,13 @@
 const { User } = require("../model/User");
 // This is basically a API 
 exports.fetchUserById = async (req,res)=>{
- const {id} = req.params;
+ const {id} = req.user;
     try{
         // here we applied projection in which we select which field is wanted so only these field will come ,so here i select name ,email and id only to come 
         const user =  await User.findById(id);
         
-        // ye ham response bhej rahe hai jiska format json hai 
-        res.status(200).json(user);
+        // ye ham response bhej rahe hai jiska format json hai
+        res.status(200).json({id:user.id,addresses:user.addresses,email:user.email,role:user.role});
     }catch(err){
         res.status(400).json(err);
     }

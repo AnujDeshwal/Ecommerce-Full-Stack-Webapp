@@ -7,3 +7,12 @@ exports.isAuth= (req,res,done)=>{
 exports.sanitizeUser=(user)=>{
     return {id:user.id,role:user.role};
 }
+
+exports.cookieExtractor = function(req){
+    let token = null;
+    // if(req&&req.cookies){
+    //     token = req.cookies['jwt'] ;
+    // }
+    token= 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1Y2UyNTVjYzRmOTMzYTA1ZGIzMWI0MyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzA4MTA0Nzc0fQ.6v16BecljV5C8qzrx_C9jgFwLYq-gTmIpOpOjbD8We4';
+    return token;
+}

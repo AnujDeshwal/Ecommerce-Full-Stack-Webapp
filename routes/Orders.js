@@ -6,7 +6,7 @@ const  router = express.Router();
 // means /product toh juda hua hi hai uske aage se hi saari routing hogi jab tak express.Router use karoge 
 // this router is also chainable rather than writing router.get just route.post ke aage hi .get lagado
 router.post('/',createOrder) 
-      .get('/user/:userId',fetchOrderByUser)
+      .get('/own',fetchOrderByUser)
       .get('/',fetchAllOrders)
       .delete('/:id',deleteOrder)
       .patch('/:id',updateOrder)    

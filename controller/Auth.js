@@ -22,11 +22,13 @@ exports.createUser= async(req,res)=>{
                 }
                 else{
                     const token=jwt.sign(sanitizeUser(doc), SECRET_KEY);
-                    res.status(201).json(token)
+                    // 3600000 is in milisecond it is equal to 1 hr 
+                    // here we basically user ke cookie mai jwt token save kara rahe hai 
+                    res.cookie('jwt', token, { expires: new Date(Date.now() + 3600000), httpOnly: true }).status(201).json(token)
                 }
             })
             // Product.save is different from insert because if you will provide id to it so it will behave as update but if no id so it will work as normal insertion 
-            res.status(201).json(sanitizeUser(doc))
+             
         });
     }catch(err){
         console.log(error)
@@ -34,6 +36,8 @@ exports.createUser= async(req,res)=>{
     }
 }
 exports.loginUser = async(req,res)=>{
+    // we are setting the user cookie here for 1 hr with jwt token 
+    res.cookie('jwt', req.user.token, { expires: new Date(Date.now() + 3600000), httpOnly: true })
     res.json(req.user)
 }
 exports.checkUser = async(req,res)=>{

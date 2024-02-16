@@ -1,11 +1,11 @@
 const { Cart } = require("../model/Cart");
 // This is basically a API 
 exports.fetchCartByUser = async (req,res)=>{
-    const {user} = req.query;
+    const {id} = req.user;
     try{
         // here it is very important concept that in the cart collection or table there is only three field which are productid by name product , user id by name user and quantity so here we have given referenec to the product column in the cart table ,go to  cart model so by refrenece we can pupulate or get the whole information about the product by the product tabel ,you can do like run this url in the postman 
         // http://localhost:8080/cart?user=6561eab4a4fbcb99cc4d468d this url is running below query so you can see you are getting all the details of the  product 
-        const cartItems =  await Cart.find({user:user}).populate('product');
+        const cartItems =  await Cart.find({user:id}).populate('product');
         // ye ham response bhej rahe hai jiska format json hai 
         res.status(200).json(cartItems);
     }catch(err){
@@ -15,7 +15,8 @@ exports.fetchCartByUser = async (req,res)=>{
 
 exports.addToCart= async(req,res)=>{
     //this req.body will get from the frontend ,basically whatever product we would have to sell they all will be added by the admin by frontend so that whole data would come from the frontend and we be parsed by the middleware express.json() because data would be in the form of json 
-    const cart = new Cart(req.body)
+    const {id} = req.user;
+    const cart = new Cart({...req.body,user:id});
     try{
         const doc = await cart.save()
         const result = await doc.populate('product')
