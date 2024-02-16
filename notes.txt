@@ -19,3 +19,7 @@ go to inspect then go to network error it will show all api calls if you click o
 Topic:another error is unexpected end of json so this means that he is trying to fetch json data but json data aa nahi paa raha from the backend so just go to network and see if any request is giving you 404 not found error 
 Topic: we are making all table by seeing the all objects or collection present in the data.json which we took from the dummyjson may be 
 Topic:error is this : Cast to ObjectId failed for value \"{\n  email: 'anujdeshwal95@gmail.com',\n  password: '@Deshwal95',\n  role: 'user',\n  addresses: [] , here problem is this that we are sending all informatio of user but it just requires objectid or userid jiska type objectid hoti hai english pado na cast to objectid failed for value means is url mai dekho kuch post ho raha hoga toh galat information bhej rahe ho , i got this error from the network portion of the inspect
+
+
+Topic: how to use passportjs for authentication
+do need of two things to install such as npm install passport express-session
