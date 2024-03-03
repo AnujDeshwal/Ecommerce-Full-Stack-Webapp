@@ -4,7 +4,7 @@ exports.fetchCartByUser = async (req,res)=>{
     const {id} = req.user;
     try{
         // here it is very important concept that in the cart collection or table there is only three field which are productid by name product , user id by name user and quantity so here we have given referenec to the product column in the cart table ,go to  cart model so by refrenece we can pupulate or get the whole information about the product by the product tabel ,you can do like run this url in the postman 
-        // http://localhost:8080/cart?user=6561eab4a4fbcb99cc4d468d this url is running below query so you can see you are getting all the details of the  product 
+        // /cart?user=6561eab4a4fbcb99cc4d468d this url is running below query so you can see you are getting all the details of the  product 
         const cartItems =  await Cart.find({user:id}).populate('product');
         // ye ham response bhej rahe hai jiska format json hai 
         res.status(200).json(cartItems);

@@ -1,6 +1,6 @@
 const { User } = require("../model/User")
 const crypto  = require('crypto');
-const SECRET_KEY='SECRET_KEY';
+
 const jwt = require('jsonwebtoken');
 const { sanitizeUser } = require("../services/common");
 // Create User means sign up so it would in authentication section 
@@ -21,10 +21,10 @@ exports.createUser= async(req,res)=>{
                     res.status(400).json(err);
                 }
                 else{
-                    const token=jwt.sign(sanitizeUser(doc), SECRET_KEY);
+                    const token=jwt.sign(sanitizeUser(doc), process.env.JWT_SECRET_KEY);
                     // 3600000 is in milisecond it is equal to 1 hr 
                     // here we basically user ke cookie mai jwt token save kara rahe hai 
-                    res.cookie('jwt', token, { expires: new Date(Date.now() + 3600000), httpOnly: true }).status(201).json(token)
+                    res.cookie('jwt', token, { expires: new Date(Date.now() + 3600000), httpOnly: true }).status(201).json({id:doc.id,role:doc.role})
                 }
             })
             // Product.save is different from insert because if you will provide id to it so it will behave as update but if no id so it will work as normal insertion 
@@ -37,9 +37,18 @@ exports.createUser= async(req,res)=>{
 }
 exports.loginUser = async(req,res)=>{
     // we are setting the user cookie here for 1 hr with jwt token 
+    const user = req.user;
     res.cookie('jwt', req.user.token, { expires: new Date(Date.now() + 3600000), httpOnly: true })
-    res.json(req.user)
+    // console.log(req.User)
+    res.json(req.user);
 }
-exports.checkUser = async(req,res)=>{
-    res.json(req.user)
+// this checkAuth we made because when we are logged in and if you will refresh the page so you will redirect to the login page and you will have to login again but here now after someone will refresh so first we will check in the backend if user still exist means if it is still logged in so we will not redirect him in the login page rather will redirect to home page 
+exports.checkAuth = async(req,res)=>{
+    // req.user exist karta hai means user still exist because req.user is made by passport js after authentication of a user 
+    if(req.user){
+        res.json(req.user)
+    }else{
+        // exist nahi karta 
+        res.sendStatus(401);
+    }
 }

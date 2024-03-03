@@ -8,12 +8,11 @@ const brandsRouter = require('./routes/Brands');
 const cors = require('cors')
 const JwtStrategy = require('passport-jwt').Strategy;
 const  ExtractJwt = require('passport-jwt').ExtractJwt;
-
+require('dotenv').config()
 const session = require('express-session');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const cookieParser = require('cookie-parser');
-const SECRET_KEY = 'SECRET_KEY';
 const jwt = require('jsonwebtoken');
 const usersRouter = require('./routes/Users');
 const authRouter = require('./routes/Auth');
@@ -21,27 +20,28 @@ const cartRouter = require('./routes/Carts');
 const orderRouter = require('./routes/Orders');
 const { sanitizeUser, isAuth, cookieExtractor } = require('./services/common');
 const { User } = require('./model/User');
-const crypto = require('crypto')
-
+const crypto = require('crypto');
+const path = require('path');
 //JWT options
 
 const opts = {}
 // here it is extracting the token from the user below cookieExtractor extractor extract kar raha hai it is a function defined by me so ye hi passport.use('jwt',()) waale ko call kar de raha hai other wise now route has a middleware as passport.authenticate('jwt')
 opts.jwtFromRequest = cookieExtractor;
-opts.secretOrKey = SECRET_KEY;
+opts.secretOrKey = process.env.JWT_SECRET_KEY;
 
 // it is a default import we can name it anything so productsRouters
 // const { productsRouters } = require('./routes/Products');
 
 //middleware
-server.use(express.static('build'))
+// below line is basically to server static files so that server will render this static files also so that poora frontend dikhega aapko , becaues previously we were just keep on adding the features and making things better so we did not make any build of the frontend but now we need to deploy the project so now we took the frontend in form of build and below it is the address of the build file 
+server.use(express.static( path.resolve(__dirname ,'build'))) 
 // cookieParser is for ki you take the data from req.cookies 
 server.use(cookieParser());
 // we created session for passport js 
 // this below thing is for 
 server.use(session({
     // is secret_key se hi sign and verificatin hoti hai us unique id ko session banata hai 
-    secret: 'keyboard cat',
+    secret: process.env.SESSION_KEY,
     resave: false, // don't save session if unmodified
     saveUninitialized: false, // don't create session until something stored
 }));
@@ -56,10 +56,46 @@ server.use(cors({
     // here we have to expose this header part because althorugh cors is allowed even after that it hides our header so that no body else use it but since we need to use this header on the frontend port we need to expose this header 
     exposedHeaders:['X-Total-Count'],
 }))
-  
+  // ye neeche wala is important for webhook integration in the stripe means webhook mai jis form mai data aata hai from stripe server usko parse karna hota hai varna ese form ko parse karna hai  
+  // here is the important thing to learn that in our backend whenever data is coming from the frontend or client so we are expecting the json data so hum express.json() to parse that data lagate hai but jab hamara client stripe hai means jab vo webhook mai data bhejega toh vo json data nahi bhejta vaha hame neeche waala raw parser chahiye hota hai so now neeche hum raw parser laga toh diya but express.json nahi chalega toh saari request kharab data jayega nahi aayega nahi so neeche waali line ko commment karna padega and do one thing that express.json() se pehle hi webhook ka poora code laga do so that vo raw parser use kar hi raha hai so initially mai raw parser lag jayega jab webhook chalega varna neeche json parser ka middleware laga diya humne 
+// server.use(express.raw({type:'application/json'}));
+
+//webhook
+
+const endpointSecret = process.env.ENDPOINT_SECRET;
+ 
+server.post('/webhook', express.raw({type: 'application/json'}), (request, response) => {
+  const sig = request.headers['stripe-signature'];
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+  } catch (err) {
+    response.status(400).send(`Webhook Error: ${err.message}`);
+    return;
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'payment_intent.succeeded':
+      const paymentIntentSucceeded = event.data.object;
+      // Then define and call a function to handle the event payment_intent.succeeded
+      break;
+    // ... handle other event types
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  // Return a 200 response to acknowledge receipt of the event
+  response.send();
+});
+
+
 
 //  this is when we are expecting a json data from the frontend or http request so it will be parsed in the req.body ,then we can get it from the req.body ,basically for parsing of json 
 // basically parsing to the javascript object from the json 
+
 server.use(express.json());
 // below line is just a thing where we will be able to write all routings in an another page or we can say we are basically using express router to add a functionality like /product will be added in every routing if we do route by express router 
 
@@ -102,10 +138,10 @@ passport.use('local', new LocalStrategy(
                   
                 }
                 // if equal hai toh neeche waali cheej 
-                const token = jwt.sign(sanitizeUser(user),SECRET_KEY);
+                const token = jwt.sign(sanitizeUser(user),process.env.JWT_SECRET_KEY);
                 // now very important that which ever value jo done ke second parameter mai jaati hai na vo hi req.user mai chali jaati hai , and koi bhi value gayi means authentication successfull 
-               done(null , {token});//this lines send to serializer
-                
+               done(null , {id:user.id,role:user.role,token});//this lines send to serializer
+                 
             });
             
         }catch(err){
@@ -149,16 +185,43 @@ passport.use('local', new LocalStrategy(
     }); 
   });
 
-  main().catch(err => console.log(err))
+//payments
+  
+// This is your test secret API key.
+const stripe = require("stripe")(process.env.STRIPE_SERVER_KEY);
+ 
+
+
+server.post("/create-payment-intent", async (req, res) => {
+  const currentOrder = req.body;  
+  // const {totalAmount} = req.body;
+  const totalAmount = currentOrder.totalAmount;
+
+  // Create a PaymentIntent with the order amount and currency
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: totalAmount*100,//here we did multiply because in stripe it takes money in paisa means if 30 rs ka koi samaan hai so 3000 stripe ko bhejoge toh vo tab 30 rs samjega 
+    currency: "INR", 
+  });
+ 
+  res.send({
+    clientSecret: paymentIntent.client_secret,
+  });
+});
+
+ 
+
+
+
+main().catch(err => console.log(err))
 
 
 async function main(){
-    await  mongoose.connect('mongodb://127.0.0.1/ecommerce');
+    await  mongoose.connect(process.env.MONGODB_URL);
     console.log('database connected');
 }
 
 
-server.listen(8080,()=>{
+server.listen(process.env.PORT,()=>{
     console.log("server started");
 })
 
