@@ -22,6 +22,7 @@ const { sanitizeUser, isAuth, cookieExtractor } = require('./services/common');
 const { User } = require('./model/User');
 const crypto = require('crypto');
 const path = require('path');
+const { Order } = require('./model/Order');
 //JWT options
 
 const opts = {}
@@ -59,12 +60,12 @@ server.use(cors({
   // ye neeche wala is important for webhook integration in the stripe means webhook mai jis form mai data aata hai from stripe server usko parse karna hota hai varna ese form ko parse karna hai  
   // here is the important thing to learn that in our backend whenever data is coming from the frontend or client so we are expecting the json data so hum express.json() to parse that data lagate hai but jab hamara client stripe hai means jab vo webhook mai data bhejega toh vo json data nahi bhejta vaha hame neeche waala raw parser chahiye hota hai so now neeche hum raw parser laga toh diya but express.json nahi chalega toh saari request kharab data jayega nahi aayega nahi so neeche waali line ko commment karna padega and do one thing that express.json() se pehle hi webhook ka poora code laga do so that vo raw parser use kar hi raha hai so initially mai raw parser lag jayega jab webhook chalega varna neeche json parser ka middleware laga diya humne 
 // server.use(express.raw({type:'application/json'}));
-
+server.use('/webhook', express.raw({type: "*/*"}))
 //webhook
 
 const endpointSecret = process.env.ENDPOINT_SECRET;
  
-server.post('/webhook', express.raw({type: 'application/json'}), async(request, response) => {
+server.post('/webhook', async(request, response) => {
   const sig = request.headers['stripe-signature'];
 
   let event;
