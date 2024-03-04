@@ -9,6 +9,7 @@ const orderSchema =  new Schema({
 //  ref ka samajna hai go to cart model 
    user:{type:Schema.Types.ObjectId , ref:'User',required:true},
    paymentMethod:{type:String},
+   paymentStatus:{type:String,default:'pending'},
    status:{type:String,default:'pending'},
    selectedAddress:{type:Schema.Types.Mixed,required:true}
 

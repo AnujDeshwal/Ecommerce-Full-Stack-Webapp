@@ -64,7 +64,7 @@ server.use(cors({
 
 const endpointSecret = process.env.ENDPOINT_SECRET;
  
-server.post('/webhook', express.raw({type: 'application/json'}), (request, response) => {
+server.post('/webhook', express.raw({type: 'application/json'}), async(request, response) => {
   const sig = request.headers['stripe-signature'];
 
   let event;
@@ -79,7 +79,11 @@ server.post('/webhook', express.raw({type: 'application/json'}), (request, respo
   // Handle the event
   switch (event.type) {
     case 'payment_intent.succeeded':
+      // here importance of webhook dikhegi aapko because through webhook only stripe can communicate to our server that payment intent is successed and we passed the order id in the metadata of the paymentintent so that when webhook url would be called by the stripe so it will provide us that metadata then we will mark the paymentstatus to received of that order ,listene order success page is the one shown by us there is no guarantee that payment has been received but through the webhook it is guaranteed that payment is received 
       const paymentIntentSucceeded = event.data.object;
+      const order = await Order.findById(paymentIntentSucceeded.metadata.orderid);
+      order.paymentStatus = 'received';
+      await order.save();
       // Then define and call a function to handle the event payment_intent.succeeded
       break;
     // ... handle other event types
@@ -107,7 +111,12 @@ server.use( '/users',isAuth(),usersRouter.router);
 // we did not put isAuth() here because auth ke baad hi isAuth() mai kuch aayega 
 server.use( '/auth',authRouter.router);
 server.use( '/cart',isAuth(),cartRouter.router);
+//this /orderes is clashing  with react /orders
 server.use( '/orders',isAuth(),orderRouter.router);
+// this line we add to  make react router  work  in case of other routes doesnot match
+server.get('*',(req,res)=> res.sendFile(path.resolve('build','index.html'))); 
+
+
 
 //Passport strategies
 // want to know about localstrategy go to nodejs folder 
@@ -196,11 +205,15 @@ server.post("/create-payment-intent", async (req, res) => {
   const currentOrder = req.body;  
   // const {totalAmount} = req.body;
   const totalAmount = currentOrder.totalAmount;
-
+const orderid = currentOrder.id;
   // Create a PaymentIntent with the order amount and currency
   const paymentIntent = await stripe.paymentIntents.create({
     amount: totalAmount*100,//here we did multiply because in stripe it takes money in paisa means if 30 rs ka koi samaan hai so 3000 stripe ko bhejoge toh vo tab 30 rs samjega 
     currency: "INR", 
+    // metadata is like giving the information about the order 
+    metadata:{
+      orderid
+    }
   });
  
   res.send({
