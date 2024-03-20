@@ -2,7 +2,7 @@ const { User } = require("../model/User")
 const crypto  = require('crypto');
 
 const jwt = require('jsonwebtoken');
-const { sanitizeUser } = require("../services/common");
+const { sanitizeUser, sendMail } = require("../services/common");
 // Create User means sign up so it would in authentication section 
 exports.createUser= async(req,res)=>{
     //this req.body will get from the frontend ,basically whatever product we would have to sell they all will be added by the admin by frontend so that whole data would come from the frontend and we be parsed by the middleware express.json() because data would be in the form of json 
@@ -50,5 +50,73 @@ exports.checkAuth = async(req,res)=>{
     }else{
         // exist nahi karta 
         res.sendStatus(401);
+    } 
+}
+exports.resetPasswordRequest = async(req,res)=>{
+    const user= await User.findOne({email:req.body.email})
+    if(user){
+        // it could be happened that you are giving the wrong email so first check if user exist of this kind of email 
+        // this token is that resetPassword token which will go to the database with the user info , ans we have used any algorithm to just generate a hashed token
+        const token =  crypto.randomBytes(48).toString('hex');
+        
+        user.resetPasswordToken = token ;
+        await user.save();
+        // here we are sending the token and email with this link so that when user will click on to this link so that he will redirect to the reset password with the token and email so , with the help of token we will autheticate that  who has come in this page whether he has come from the email link or by just putting the url like auth/reset-password , means user should come from the gmail link only and we need email there for to update the user info 
+        const resetPageLink = "http://localhost:3000/reset-password?token="+token+"&email="+req.body.email;
+        const subject ="reset password for e-commerce";
+        // below always use single quotes inside the double quotes 
+        const html = `<p>Click <a href='${resetPageLink}' > here </a> to Reset Password</p>`;
+        
+        if(req.body.email){
+            console.log("hello mrs")
+            const response = await sendMail({to:req.body.email,subject,html});
+            res.json(response);
+        }else{
+            // exist nahi karta 
+            res.sendStatus(401);
+        }
+    }else{
+        // exist nahi karta 
+        res.sendStatus(401);
     }
+   
+}
+exports.resetPassword = async(req,res)=>{
+    const {email , password ,token} = req.body;
+    // now here we are checking that the email and token we got from the params or url , is it correct or not so we are fetching the details according then we will update the password of the user 
+    const user= await User.findOne({email:email,resetPasswordToken:token})
+    if(user){
+        console.log('user hai ')
+        // it could be happened that you are giving the wrong email so first check if user exist of this kind of email 
+        // this token is that resetPassword token which will go to the database with the user info , ans we have used any algorithm to just generate a hashed token
+        const salt = crypto.randomBytes(16);
+        // you know we always save a encrypted password in the database with the salt to decrypt it 
+        crypto.pbkdf2(req.body.password, salt, 310000, 32, 'sha256',async function(err, hashedPassword){
+            user.password = hashedPassword ;
+            user.salt = salt;
+            await user.save();
+            console.log('reset password hi chala hai ')
+            // here we are again sending the email to that same user to notify that your password has been changed success fully 
+            const subject =" password successfully reset for e-commerce";
+            // below always use single quotes inside the double quotes 
+            const html = `<p>Successfully able to reset Password</p>`;
+            
+            if(req.body.email){
+                console.log("hello mrs")
+                const response = await sendMail({to:req.body.email,subject,html});
+                res.json(response);
+            }else{
+                // exist nahi karta 
+                res.sendStatus(401);
+            }
+        
+        } )
+    }else{
+        // exist nahi karta 
+        res.sendStatus(401);
+    }
+        
+        
+       
+   
 }

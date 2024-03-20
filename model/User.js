@@ -10,7 +10,9 @@ const userSchema =  new Schema({
     name:{type:String},
     // orders:{type:[Schema.Types.Mixed]},
     //you are directly writing buffer means you are directly mentioned  buffer 
-    salt:Buffer 
+    salt:Buffer ,
+    //this token will be made before hand of sending the mail to anyone so that when he will click on the link to reset the password so at time , he will come up with the same token which we generated beforehand so we will verify , it is because if anyone will get to know that in the url /auth/reset-password we can reset the password so any hacker would do it and reset the password so this is for authentication that you can only come on this url from our mail not from direct putting the url
+    resetPasswordToken: {type:String,default:''}
 }) 
 const virtual =  userSchema.virtual('id');
 virtual.get(function(){

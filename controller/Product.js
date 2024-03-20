@@ -14,7 +14,7 @@ exports.createProduct= async(req,res)=>{
     }catch(err){
         res.status(400).json(err)
     }
-}
+} 
 
 exports.fetchAllProducts= async(req,res)=>{
     //this req.body will get from the frontend ,basically whatever product we would have to sell they all will be added by the admin by frontend so that whole data would come from the frontend and we be parsed by the middleware express.json() because data would be in the form of json 
