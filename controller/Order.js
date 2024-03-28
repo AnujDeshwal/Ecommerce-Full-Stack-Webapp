@@ -1,5 +1,7 @@
 const { Cart } = require("../model/Cart");
 const { Order } = require("../model/Order");
+const { User } = require("../model/User");
+const { sendMail, invoiceTemplate } = require("../services/common");
 // This is basically a API 
 exports.fetchOrderByUser = async (req,res)=>{
     // right now req.user has id and role 
@@ -20,9 +22,15 @@ exports.createOrder= async(req,res)=>{
     const order = new Order(req.body)
     try{
         const doc = await order.save()
+        // remember that user id is resided in the order.user in the orderSchema
+        const user = await User.findById(order.user);
+        // basically below sendMali could be done with await but do not do this because here , response is needed to send to frontend that yes order is created so then frontend will do its work but if you will add await here so then it will block res.status until mail is sent successfully which could make a delay because sending mail take significant amount of time to be sent , so we do not need that first email should go , then response 
+        // console.log(user.email)  
+        sendMail({to:user.email,html:invoiceTemplate(order),subject:"Order is created"})
         // Product.save is different from insert because if you will provide id to it so it will behave as update but if no id so it will work as normal insertion 
         res.status(201).json(doc)
     }catch(err){
+        console.log(err)
         res.status(400).json(err)
     }
 }

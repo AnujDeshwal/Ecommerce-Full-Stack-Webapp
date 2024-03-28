@@ -8,7 +8,7 @@ exports.fetchCategories = async (req,res)=>{
         // ye ham response bhej rahe hai jiska format json hai 
         res.status(200).json(categories);
     }catch(err){
-        res.status(400).json(err);
+        res.status(400).json(err); 
     }
 }
 

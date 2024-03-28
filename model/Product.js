@@ -12,6 +12,10 @@ const productSchema =  new Schema({
     category:{type:String,required:true},
     thumbnail:{type:String,required:true},
     images:{type:[String],required:true},
+    // although here colors and sizes are available it does not mean that colors and sizes would appear there because mainly most of the product there are the one who are added before the development so there colors and sizes are predefined but as soon as admin create a product so then he adds the colors and sizes which will appear in reality but these products are not created by admin so there colors are sizes are not available or not shown right now 
+    colors:{type:[Schema.Types.Mixed]},
+    sizes:{type:[Schema.Types.Mixed]},
+    highlights:{type:[String]},
     deleted:{type:Boolean,default:false},
     
 })
