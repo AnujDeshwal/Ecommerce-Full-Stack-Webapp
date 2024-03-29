@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const {Schema} = mongoose;
-
+// when error will occur so this message will be shown , and about enum, it is mentionend below 
+const paymentMethods = {values:['cash','card'],message:'enum validator failed for payment Methods'}
 const orderSchema =  new Schema({
    items:{type:[Schema.Types.Mixed],required:true},
    totalAmount:{type:Number},
@@ -8,7 +9,8 @@ const orderSchema =  new Schema({
 //    product:{type:Schema.Types.ObjectId , ref:'Product',required:true},
 //  ref ka samajna hai go to cart model 
    user:{type:Schema.Types.ObjectId , ref:'User',required:true},
-   paymentMethod:{type:String},
+//    this enum is basically that for paymentMethod , you can only input two things in this field either cash or card , if something else would come up from anywhere so it will through error that it is not in enum 
+   paymentMethod:{type:String,required:true,enum:paymentMethods},
    paymentStatus:{type:String,default:'pending'},
    status:{type:String,default:'pending'},
    selectedAddress:{type:Schema.Types.Mixed,required:true}

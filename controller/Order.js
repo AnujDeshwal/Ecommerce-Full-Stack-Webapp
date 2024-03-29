@@ -1,5 +1,6 @@
 const { Cart } = require("../model/Cart");
 const { Order } = require("../model/Order");
+const { Product } = require("../model/Product");
 const { User } = require("../model/User");
 const { sendMail, invoiceTemplate } = require("../services/common");
 // This is basically a API 
@@ -20,6 +21,12 @@ exports.fetchOrderByUser = async (req,res)=>{
 exports.createOrder= async(req,res)=>{
     //this req.body will get from the frontend ,basically whatever product we would have to sell they all will be added by the admin by frontend so that whole data would come from the frontend and we be parsed by the middleware express.json() because data would be in the form of json 
     const order = new Order(req.body)
+    // for all items just decrement their stock by 1 
+    for(let item of order.items){
+        const product = await Product.findOne({_id:item.product.id});
+        product.$inc('stock',-1*item.quantity);
+        await product.save(); 
+    }
     try{
         const doc = await order.save()
         // remember that user id is resided in the order.user in the orderSchema

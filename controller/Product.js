@@ -7,6 +7,7 @@ const {Product} = require("../model/Product");
 exports.createProduct= async(req,res)=>{
     //this req.body will get from the frontend ,basically whatever product we would have to sell they all will be added by the admin by frontend so that whole data would come from the frontend and we be parsed by the middleware express.json() because data would be in the form of json 
     const product = new Product(req.body)
+    product.discountPrice = Math.round(product.price*(1-product.discountPercentage/100))
     try{
         const doc = await product.save()
         // Product.save is different from insert because if you will provide id to it so it will behave as update but if no id so it will work as normal insertion 
@@ -32,13 +33,14 @@ exports.fetchAllProducts= async(req,res)=>{
     
     // i am applying all these filter on a same "query" variable because first of all , all products which are of category mentioned would come in it then , in those filter category brand would be choosen that which brand is needed so brand filter would be applied on that category if category was provided then sort would be app lied and also remember that these commands of dbms are promises so they wouuld be working in the background 
     if(req.query.category){
-        query =  query.find({category: req.query.category});
-        totalProductsQuery =  totalProductsQuery.find({category: req.query.category});
+        // The  $in operator selects the documents where the value of a field equals any value in the specified array. so basically this split is creating a array from the array , now req.query.category has a array which are separated from the comma so here when you specify a array so comma should not be there so split is making a suitable array and split method separating the element from that array with the help of comma where a comma is availabe it means this is another element  , so that which ever category is in that array that document would be selected so this is for to select simultaneously more than one category at a time 
+        query =  query.find({category: {$in:req.query.category.split(',')}});
+        totalProductsQuery =  totalProductsQuery.find({category: {$in:req.query.category.split(',')}});
     }
     const totalDocs = await totalProductsQuery.count().exec();  
     if(req.query.brand){
-        query =  query.find({brand: req.query.brand});
-        totalProductsQuery =  totalProductsQuery.find({brand: req.query.brand});
+        query =  query.find({brand: {$in:req.query.brand.split(',')}});
+        totalProductsQuery =  totalProductsQuery.find({brand: {$in:req.query.brand.split(',')}});
     }
     if(req.query._sort && req.query._order){
         query =  query.sort({[req.query._sort]:req.query._order})
@@ -87,9 +89,11 @@ exports.updateProduct = async (req,res)=>{
     try{
         // here basically in the req.body we will send the updated product and basically findByIdAndUpdate function send the old document not updated one so we ordered him new:true means send the updated document because we want updated product in our frontend
         const product = await Product.findByIdAndUpdate(id,req.body,{new:true});
+        product.discountPrice = Math.round(product.price*(1-product.discountPercentage/100))
+        const updatedProduct = await product.save();
         // in the findByIdAndUpdate you generally send only those field of the document which is to be updated 
-        res.status(200).json(product)
+        res.status(200).json(updatedProduct)
     }catch(err){
-        res.status(400).json(err)
+        res.status(400).json(err) 
     }
 }
