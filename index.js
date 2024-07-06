@@ -62,6 +62,14 @@ server.use(
   cors({
     // here we have to expose this header part because althorugh cors is allowed even after that it hides our header so that no body else use it but since we need to use this header on the frontend port we need to expose this header
     exposedHeaders: ["X-Total-Count"],
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "https://ecommerce-backend-1llr.onrender.com"
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE","PATCH"],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
   })
 );
 // ye neeche wala is important for webhook integration in the stripe means webhook mai jis form mai data aata hai from stripe server usko parse karna hota hai varna ese form ko parse karna hai
@@ -146,6 +154,7 @@ passport.use(
     async function (email, password, done) {
       // by default passportjs uses username but here email would come in our case , because we are taking email from the user not username, so username variable ke andr email hoga
       try {
+       console.log("from user")
         const user = await User.findOne({ email: email }).exec();
         if (!user) {
           // return basically isliye likh rahe hai so that done jaise hi kare toh function return ho jaye neeche ka code na chale , if apne every thing if else mai hai toh then retur likhne ki jaroorat nahi because then ek hi done chalega
@@ -168,8 +177,9 @@ passport.use(
             const token = jwt.sign(
               sanitizeUser(user),
               process.env.JWT_SECRET_KEY
-            );
+            ); 
             // now very important that which ever value jo done ke second parameter mai jaati hai na vo hi req.user mai chali jaati hai , and koi bhi value gayi means authentication successfull
+            
             done(null, { id: user.id, role: user.role, token }); //this lines send to serializer
           }
         );
@@ -183,13 +193,14 @@ passport.use(
 passport.use(
   "jwt",
   new JwtStrategy(opts, async function (jwt_payload, done) {
+   
     try {
       // When a request is made to a route protected by passport-jwt, the middleware intercepts the request and attempts to extract the JWT token from the request (e.g., from headers, query parameters, or cookies, depending on your configuration).
 
       // Decoding and Verification: Once the JWT is extracted, the passport-jwt strategy decodes and verifies the token using the configured secret or public key. If the token is valid, the strategy extracts the user information from the token's payload.
 
       // User Population: If the token is valid and the user information is successfully extracted, the passport-jwt strategy populates req.user with the extracted user information. This allows subsequent middleware or route handlers to access the authenticated user's details.
-
+      
       const user = await User.findById(jwt_payload.id);
       if (user) {
         // ye neeche waala code req.user mai sanitizerUser daal dega pehle req.user mai token pada hua that after login
@@ -225,7 +236,7 @@ const stripe = require("stripe")(process.env.STRIPE_SERVER_KEY);
 server.post("/create-payment-intent", async (req, res) => {
   const currentOrder = req.body;
   // const {totalAmount} = req.body;
-  const totalAmount = currentOrder.totalAmount;
+  const totalAmount = currentOrder.totalAmount.toFixed(2);
   const orderid = currentOrder.id;
   // Create a PaymentIntent with the order amount and currency
   const paymentIntent = await stripe.paymentIntents.create({
@@ -250,5 +261,5 @@ async function main() {
 }
 
 server.listen(process.env.PORT, () => {
-  console.log("server started");
+  console.log("server started withport no. ",process.env.PORT);
 });

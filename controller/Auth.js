@@ -52,9 +52,12 @@ exports.createUser = async (req, res) => {
 };
 exports.loginUser = async (req, res) => {
   // we are setting the user cookie here for 1 hr with jwt token
+  console.log("fron login backend")
   const user = req.user;
   res.cookie("jwt", req.user.token, {
     expires: new Date(Date.now() + 3600000),
+    secure: true, // Use 'true' if HTTPS is enabled
+    sameSite: 'None',
     httpOnly: true,
   });
   // console.log(req.User)
@@ -75,6 +78,7 @@ exports.logout = async (req, res) => {
 // this checkAuth we made because when we are logged in and if you will refresh the page so you will redirect to the login page and you will have to login again but here now after someone will refresh so first we will check in the backend if user still exist means if it is still logged in so we will not redirect him in the login page rather will redirect to home page
 exports.checkAuth = async (req, res) => {
   // req.user exist karta hai means user still exist because req.user is made by passport js after authentication of a user
+  console.log("from check backend")
   if (req.user) {
     res.json(req.user);
   } else {

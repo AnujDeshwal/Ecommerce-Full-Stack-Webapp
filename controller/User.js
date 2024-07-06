@@ -1,6 +1,7 @@
 const { User } = require("../model/User");
 // This is basically a API 
 exports.fetchUserById = async (req,res)=>{
+    console.log("fron own ")
  const {id} = req.user;
     try{
         // here we applied projection in which we select which field is wanted so only these field will come ,so here i select name ,email and id only to come 
